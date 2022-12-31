@@ -13,6 +13,7 @@ namespace SimonKnittel.TowerDefense
 		public int PlayerLives = 10;
 		public int SingleTargetDamageCosts = 100;
 		public Waves.WaveManager[] Waves;
+		public int TimeMultiplicator = 1;
 
 		VRCPlayerApi _localPlayer;
 		TowerTile.Manager _currentHighlightedTowerTile;
@@ -45,6 +46,31 @@ namespace SimonKnittel.TowerDefense
 			{
 				Wave.ResetWave();
 			}
+		}
+
+		void SetTimeMultiplicator(int newValue)
+		{
+			TimeMultiplicator = newValue;
+
+			foreach (var Wave in Waves)
+			{
+				Wave.UpdateTimeMultiplicator();
+			}
+		}
+
+		public void TimeMultiplicator1x()
+		{
+			SetTimeMultiplicator(1);
+		}
+
+		public void TimeMultiplicator2x()
+		{
+			SetTimeMultiplicator(2);
+		}
+
+		public void TimeMultiplicator4x()
+		{
+			SetTimeMultiplicator(4);
 		}
 
 		void Update()

@@ -12,15 +12,15 @@ namespace SimonKnittel.TowerDefense.Waves
 		public VRC.SDK3.Components.VRCObjectPool EnemyPool;
 		public float SpawnDuration;
 		public float AfterSpawnPause;
+		public GameManager GameManager;
 		float _spawnRate;
 		bool _spawning = false;
 		int _spawnIndex = 0;
 
 		void Start()
 		{
-			_spawnRate = SpawnDuration / EnemyPool.Pool.GetLength(0);
+			_spawnRate = SpawnDuration / EnemyPool.Pool.GetLength(0) / GameManager.TimeMultiplicator;
 		}
-
 
 		public void SpawnWave()
 		{
@@ -37,6 +37,11 @@ namespace SimonKnittel.TowerDefense.Waves
 			{
 				EnemyPool.Return(Enemy);
 			}
+		}
+
+		public void UpdateTimeMultiplicator()
+		{
+			_spawnRate = SpawnDuration / EnemyPool.Pool.GetLength(0) / GameManager.TimeMultiplicator;
 		}
 
 		public void SpawnEnemy()
