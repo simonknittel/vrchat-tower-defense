@@ -10,12 +10,15 @@ namespace SimonKnittel.TowerDefense
 	public class GameManager : UdonSharpBehaviour
 	{
 		public int Gold = 1000;
+		public int PlayerLives = 10;
 		public int SingleTargetDamageCosts = 100;
+		public Waves.WaveManager[] Waves;
 
 		VRCPlayerApi _localPlayer;
 		TowerTile.Manager _currentHighlightedTowerTile;
 		bool _isUserInVR = true;
 		TowerTile.TowerTypes _currentInventorySelection = TowerTile.TowerTypes.SingleTargetDamage;
+		bool _gameRunning = false;
 
 		void Start()
 		{
@@ -23,8 +26,31 @@ namespace SimonKnittel.TowerDefense
 			_isUserInVR = _localPlayer.IsUserInVR();
 		}
 
+		public void StartGame()
+		{
+			if (Waves.GetLength(0) == 0) return;
+			_gameRunning = true;
+			Waves[0].SpawnWave();
+		}
+
+		public void ResetGame()
+		{
+			_gameRunning = false;
+			Gold = 1000;
+			PlayerLives = 10;
+
+			// TODO: Reset towers
+
+			foreach (var Wave in Waves)
+			{
+				Wave.ResetWave();
+			}
+		}
+
 		void Update()
 		{
+			if (_gameRunning == false) return;
+
 			if (_currentHighlightedTowerTile != null)
 			{
 				_currentHighlightedTowerTile.ToggleHighlight(false);
@@ -57,6 +83,7 @@ namespace SimonKnittel.TowerDefense
 
 		public void InputUse()
 		{
+			if (_gameRunning == false) return;
 			if (_currentHighlightedTowerTile == null) return;
 
 			switch (_currentInventorySelection)
