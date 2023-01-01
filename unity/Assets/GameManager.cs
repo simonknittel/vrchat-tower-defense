@@ -14,6 +14,7 @@ namespace SimonKnittel.TowerDefense
 		public int SingleTargetDamageCosts = 100;
 		public Waves.WaveManager[] Waves;
 		public int TimeMultiplicator = 1;
+		public Transform[] Waypoints;
 
 		VRCPlayerApi _localPlayer;
 		TowerTile.Manager _currentHighlightedTowerTile;
@@ -123,6 +124,11 @@ namespace SimonKnittel.TowerDefense
 				default:
 					return;
 			}
+		}
+
+		public void EnemyReachedCastle()
+		{
+			PlayerLives--;
 		}
 	}
 }
