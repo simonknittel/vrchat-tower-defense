@@ -48,7 +48,8 @@ namespace SimonKnittel.TowerDefense.Waves
 		{
 			if (_spawning == false) return;
 
-			EnemyPool.TryToSpawn();
+			var spawnedEnemy = EnemyPool.TryToSpawn();
+			spawnedEnemy.GetComponent<Enemies.EnemyManager>().Spawn();
 
 			_spawnIndex++;
 

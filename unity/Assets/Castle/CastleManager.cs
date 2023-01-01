@@ -14,8 +14,10 @@ namespace SimonKnittel.TowerDefense
 		void OnTriggerEnter(Collider collider)
 		{
 			if (collider.gameObject.name.Contains("Enemy") == false) return;
-			GameManager.EnemyReachedCastle();
-			collider.GetComponent<Enemies.EnemyManager>().Despawn();
+
+			var enemyManager = collider.gameObject.GetComponent<Enemies.EnemyManager>();
+			GameManager.EnemyReachedCastle(enemyManager.AttackDamage);
+			enemyManager.Despawn();
 		}
 	}
 }

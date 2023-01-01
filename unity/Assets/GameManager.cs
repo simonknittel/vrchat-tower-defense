@@ -126,9 +126,9 @@ namespace SimonKnittel.TowerDefense
 			}
 		}
 
-		public void EnemyReachedCastle()
+		public void EnemyReachedCastle(int attackDamage)
 		{
-			PlayerLives--;
+			PlayerLives -= attackDamage;
 		}
 	}
 }
