@@ -6,6 +6,13 @@ using VRC.Udon;
 
 namespace SimonKnittel.TowerDefense.Waves
 {
+	public enum State
+	{
+		None,
+		Spawning,
+		Waiting,
+	}
+
 	[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 	public class WaveManager : UdonSharpBehaviour
 	{
@@ -14,7 +21,7 @@ namespace SimonKnittel.TowerDefense.Waves
 		public float AfterSpawnPause;
 		public GameManager GameManager;
 		float _spawnRate;
-		bool _spawning = false;
+		State _state = State.None;
 		int _spawnIndex = 0;
 
 		void Start()
@@ -24,13 +31,13 @@ namespace SimonKnittel.TowerDefense.Waves
 
 		public void SpawnWave()
 		{
-			_spawning = true;
+			_state = State.Spawning;
 			SpawnEnemy();
 		}
 
 		public void ResetWave()
 		{
-			_spawning = false;
+			_state = State.None;
 			_spawnIndex = 0;
 
 			foreach (var Enemy in EnemyPool.Pool)
@@ -46,7 +53,7 @@ namespace SimonKnittel.TowerDefense.Waves
 
 		public void SpawnEnemy()
 		{
-			if (_spawning == false) return;
+			if (_state != State.Spawning) return;
 
 			var spawnedEnemy = EnemyPool.TryToSpawn();
 			spawnedEnemy.GetComponent<Enemies.EnemyManager>().Spawn();
@@ -55,7 +62,7 @@ namespace SimonKnittel.TowerDefense.Waves
 
 			if (_spawnIndex >= EnemyPool.Pool.GetLength(0))
 			{
-				_spawning = false;
+				_state = State.Waiting;
 				return;
 			}
 

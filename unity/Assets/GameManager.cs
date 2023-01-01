@@ -6,47 +6,72 @@ using VRC.Udon;
 
 namespace SimonKnittel.TowerDefense
 {
+	public enum GameState
+	{
+		Pristine,
+		Running,
+		Won,
+		Lost
+	}
+
 	[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 	public class GameManager : UdonSharpBehaviour
 	{
 		public int Gold = 1000;
-		public int PlayerLives = 10;
+		public int TotalPlayerLives = 10;
+		public int CurrentPlayerLives;
 		public int SingleTargetDamageCosts = 100;
 		public Waves.WaveManager[] Waves;
 		public int TimeMultiplicator = 1;
 		public Transform[] Waypoints;
+		public GameState GameState = GameState.Pristine;
+		public UnityEngine.UI.Text LivesText;
+		public UnityEngine.UI.Text WaveSignText;
 
 		VRCPlayerApi _localPlayer;
 		TowerTile.Manager _currentHighlightedTowerTile;
 		bool _isUserInVR = true;
 		TowerTile.TowerTypes _currentInventorySelection = TowerTile.TowerTypes.SingleTargetDamage;
-		bool _gameRunning = false;
 
 		void Start()
 		{
 			_localPlayer = Networking.LocalPlayer;
 			_isUserInVR = _localPlayer.IsUserInVR();
+
+			ResetGame();
 		}
 
 		public void StartGame()
 		{
 			if (Waves.GetLength(0) == 0) return;
-			_gameRunning = true;
+			GameState = GameState.Running;
 			Waves[0].SpawnWave();
 		}
 
 		public void ResetGame()
 		{
-			_gameRunning = false;
+			GameState = GameState.Pristine;
 			Gold = 1000;
-			PlayerLives = 10;
-
-			// TODO: Reset towers
+			CurrentPlayerLives = TotalPlayerLives;
+			UpdateLivesText();
+			UpdateWaveSign();
 
 			foreach (var Wave in Waves)
 			{
 				Wave.ResetWave();
 			}
+
+			// TODO: Reset towers
+		}
+
+		void UpdateLivesText()
+		{
+			LivesText.text = $"Lives {CurrentPlayerLives}/{TotalPlayerLives}";
+		}
+
+		void UpdateWaveSign()
+		{
+			WaveSignText.text = $"Wave 1/{Waves.GetLength(0)}";
 		}
 
 		void SetTimeMultiplicator(int newValue)
@@ -76,7 +101,7 @@ namespace SimonKnittel.TowerDefense
 
 		void Update()
 		{
-			if (_gameRunning == false) return;
+			if (GameState != GameState.Running) return;
 
 			if (_currentHighlightedTowerTile != null)
 			{
@@ -110,7 +135,7 @@ namespace SimonKnittel.TowerDefense
 
 		public void InputUse()
 		{
-			if (_gameRunning == false) return;
+			if (GameState != GameState.Running) return;
 			if (_currentHighlightedTowerTile == null) return;
 
 			switch (_currentInventorySelection)
@@ -128,7 +153,8 @@ namespace SimonKnittel.TowerDefense
 
 		public void EnemyReachedCastle(int attackDamage)
 		{
-			PlayerLives -= attackDamage;
+			CurrentPlayerLives -= attackDamage;
+			UpdateLivesText();
 		}
 	}
 }
