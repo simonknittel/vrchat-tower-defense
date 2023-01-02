@@ -42,7 +42,7 @@ namespace SimonKnittel.TowerDefense.Waves
 
 			foreach (var Enemy in EnemyPool.Pool)
 			{
-				EnemyPool.Return(Enemy);
+				Enemy.GetComponent<Enemies.EnemyManager>().Despawn();
 			}
 		}
 
