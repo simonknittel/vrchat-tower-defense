@@ -33,14 +33,7 @@ namespace SimonKnittel.TowerDefense.TowerTile
 					break;
 
 				case State.Attacking:
-					if (_currentTarget == null)
-					{
-						SwitchState(State.None);
-					}
-					else
-					{
-						Attack();
-					}
+					Attack();
 					break;
 
 				case State.Cooldown:
@@ -85,12 +78,13 @@ namespace SimonKnittel.TowerDefense.TowerTile
 
 			if (target == _currentTarget)
 			{
-				SwitchState(State.None);
+				SelectNextTarget();
 			}
 		}
 
 		void Attack()
 		{
+			Debug.Log(_currentTarget.name);
 			if (_currentTarget.Attacked(AttackDamage))
 			{
 				// Remove _currentTarget from collection
@@ -101,13 +95,7 @@ namespace SimonKnittel.TowerDefense.TowerTile
 					break;
 				}
 
-				// Select next target from collection
-				for (int i = 0; i < _targetsInRange.GetLength(0); i++)
-				{
-					if (_targetsInRange[i] == null) continue;
-					_currentTarget = _targetsInRange[i];
-					break;
-				}
+				SelectNextTarget();
 			}
 
 			SwitchState(State.Cooldown);
@@ -115,7 +103,26 @@ namespace SimonKnittel.TowerDefense.TowerTile
 
 		public void CooldownFinished()
 		{
-			SwitchState(State.Attacking);
+			if (_currentTarget == null)
+			{
+				SwitchState(State.None);
+			}
+			else
+			{
+				SwitchState(State.Attacking);
+			}
+		}
+
+		void SelectNextTarget()
+		{
+			_currentTarget = null;
+
+			for (int i = 0; i < _targetsInRange.GetLength(0); i++)
+			{
+				if (_targetsInRange[i] == null) continue;
+				_currentTarget = _targetsInRange[i];
+				break;
+			}
 		}
 	}
 }

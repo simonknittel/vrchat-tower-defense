@@ -143,6 +143,7 @@ MonoBehaviour:
   TotalHealth: 3
   CurrentHealth: 3
   State: 0
+  CanvasTransform: {fileID: 3489668215595701140}
   HealthText: {fileID: 5190329562076355525}
 --- !u!114 &8318375623697940104
 MonoBehaviour:
@@ -213,7 +214,7 @@ GameObject:
   - component: {fileID: 8236253041773780653}
   - component: {fileID: 4148862316526481698}
   m_Layer: 17
-  m_Name: Health
+  m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -336,7 +337,7 @@ GameObject:
   - component: {fileID: 5384978519578139498}
   - component: {fileID: 5190329562076355525}
   m_Layer: 17
-  m_Name: Text
+  m_Name: Health
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

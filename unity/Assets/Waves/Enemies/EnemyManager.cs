@@ -27,7 +27,14 @@ namespace SimonKnittel.TowerDefense.Enemies
 		Transform[] _waypoints;
 		int _currentWaypointIndex = 0;
 		Vector3 _currentWaypointPosition;
+		public Transform CanvasTransform;
 		public UnityEngine.UI.Text HealthText;
+		VRCPlayerApi _localPlayer;
+
+		void Start()
+		{
+			_localPlayer = Networking.LocalPlayer;
+		}
 
 		public void SwitchState(State newState)
 		{
@@ -78,6 +85,9 @@ namespace SimonKnittel.TowerDefense.Enemies
 
 		void Update()
 		{
+			var trackingData = _localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+			CanvasTransform.LookAt(CanvasTransform.position + trackingData.rotation * Vector3.forward, trackingData.rotation * Vector3.up);
+
 			if (State != State.Moving) return;
 
 			var step = Speed * Time.deltaTime;

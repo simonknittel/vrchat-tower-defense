@@ -20,7 +20,7 @@ namespace SimonKnittel.TowerDefense
 	[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 	public class GameManager : UdonSharpBehaviour
 	{
-		public int Gold = 1000;
+		public int Gold = 200;
 		public int TotalPlayerLives = 10;
 		public int CurrentPlayerLives;
 		public int SingleTargetDamageCosts = 100;
@@ -118,7 +118,7 @@ namespace SimonKnittel.TowerDefense
 
 		public void ResetGame()
 		{
-			Gold = 100;
+			Gold = 200;
 			CurrentPlayerLives = TotalPlayerLives;
 			_currentWaveIndex = 0;
 			UpdateLivesText();
