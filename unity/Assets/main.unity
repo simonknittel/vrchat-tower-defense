@@ -7559,7 +7559,7 @@ MonoBehaviour:
     SerializationNodes: []
   _udonSharpBackingUdonBehaviour: {fileID: 1514641833}
   Gold: 100
-  TotalPlayerLives: 10
+  TotalPlayerLives: 20
   CurrentPlayerLives: 0
   SingleTargetDamageCosts: 100
   Waves:

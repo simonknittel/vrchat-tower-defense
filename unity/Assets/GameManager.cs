@@ -39,7 +39,7 @@ namespace SimonKnittel.TowerDefense
 		TowerTile.Manager _currentHighlightedTowerTile;
 		bool _isUserInVR = true;
 		TowerTile.TowerTypes _currentInventorySelection = TowerTile.TowerTypes.SingleTargetDamage;
-		int _currentWaveIndex = -1;
+		int _currentWaveIndex = 0;
 
 		void Start()
 		{
@@ -65,6 +65,7 @@ namespace SimonKnittel.TowerDefense
 
 				case GameState.WaveSpawning:
 					SpawnNextWave();
+					UpdateWaveSign();
 					NextWaveButton.interactable = false;
 					break;
 
@@ -72,6 +73,13 @@ namespace SimonKnittel.TowerDefense
 					break;
 
 				case GameState.WaveFinished:
+					_currentWaveIndex++;
+					if (_currentWaveIndex >= Waves.GetLength(0))
+					{
+						SwitchState(GameState.Won);
+						break;
+					}
+					UpdateWaveSign();
 					NextWaveButton.interactable = true;
 					break;
 
@@ -105,23 +113,14 @@ namespace SimonKnittel.TowerDefense
 
 		void SpawnNextWave()
 		{
-			_currentWaveIndex++;
-
-			if (_currentWaveIndex >= Waves.GetLength(0))
-			{
-				SwitchState(GameState.Won);
-				return;
-			}
-
 			Waves[_currentWaveIndex].SwitchState(TowerDefense.Waves.State.Spawning);
-			UpdateWaveSign();
 		}
 
 		public void ResetGame()
 		{
 			Gold = 100;
 			CurrentPlayerLives = TotalPlayerLives;
-			_currentWaveIndex = -1;
+			_currentWaveIndex = 0;
 			UpdateLivesText();
 			UpdateWaveSign();
 			UpdateWinLooseSign(0);
