@@ -11,6 +11,7 @@ namespace SimonKnittel.TowerDefense.Waves
 		None,
 		Spawning,
 		Waiting,
+		Finished,
 	}
 
 	[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
@@ -18,31 +19,54 @@ namespace SimonKnittel.TowerDefense.Waves
 	{
 		public VRC.SDK3.Components.VRCObjectPool EnemyPool;
 		public float SpawnDuration;
-		public float AfterSpawnPause;
 		public GameManager GameManager;
 		float _spawnRate;
-		State _state = State.None;
+		public State State = State.None;
 		int _spawnIndex = 0;
+		[SerializeField]
+		int _killedEnemies = 0;
 
 		void Start()
 		{
 			_spawnRate = SpawnDuration / EnemyPool.Pool.GetLength(0) / GameManager.TimeMultiplicator;
 		}
 
-		public void SpawnWave()
+		public void SwitchState(State newState)
 		{
-			_state = State.Spawning;
-			SpawnEnemy();
+			State = newState;
+
+			switch (newState)
+			{
+				case State.None:
+					ResetWave();
+					break;
+
+				case State.Spawning:
+					SpawnEnemy();
+					break;
+
+				case State.Waiting:
+					GameManager.SwitchState(GameState.WaveWaiting);
+					break;
+
+				case State.Finished:
+					if (GameManager.State != GameState.WaveWaiting) return;
+					GameManager.SwitchState(GameState.WaveFinished);
+					break;
+
+				default:
+					break;
+			}
 		}
 
-		public void ResetWave()
+		void ResetWave()
 		{
-			_state = State.None;
 			_spawnIndex = 0;
+			_killedEnemies = 0;
 
 			foreach (var Enemy in EnemyPool.Pool)
 			{
-				Enemy.GetComponent<Enemies.EnemyManager>().Despawn();
+				Enemy.GetComponent<Enemies.EnemyManager>().SwitchState(Enemies.State.None);
 			}
 		}
 
@@ -53,20 +77,28 @@ namespace SimonKnittel.TowerDefense.Waves
 
 		public void SpawnEnemy()
 		{
-			if (_state != State.Spawning) return;
+			if (State != State.Spawning) return;
 
 			var spawnedEnemy = EnemyPool.TryToSpawn();
-			spawnedEnemy.GetComponent<Enemies.EnemyManager>().Spawn();
+			spawnedEnemy.GetComponent<Enemies.EnemyManager>().SwitchState(Enemies.State.Moving);
 
 			_spawnIndex++;
 
 			if (_spawnIndex >= EnemyPool.Pool.GetLength(0))
 			{
-				_state = State.Waiting;
+				SwitchState(State.Waiting);
 				return;
 			}
 
 			SendCustomEventDelayedSeconds("SpawnEnemy", _spawnRate);
+		}
+
+		public void EnemyKilled()
+		{
+			_killedEnemies++;
+
+			if (_killedEnemies < EnemyPool.Pool.GetLength(0)) return;
+			SwitchState(State.Finished);
 		}
 	}
 }

@@ -9,7 +9,10 @@ namespace SimonKnittel.TowerDefense
 	public enum GameState
 	{
 		Pristine,
-		Running,
+		Waiting,
+		WaveSpawning,
+		WaveWaiting,
+		WaveFinished,
 		Won,
 		Lost
 	}
@@ -24,41 +27,108 @@ namespace SimonKnittel.TowerDefense
 		public Waves.WaveManager[] Waves;
 		public int TimeMultiplicator = 1;
 		public Transform[] Waypoints;
-		public GameState GameState = GameState.Pristine;
+		public GameState State = GameState.Pristine;
 		public UnityEngine.UI.Text LivesText;
 		public UnityEngine.UI.Text WaveSignText;
+		public GameObject WinLooseSign;
+		public GameObject WinText;
+		public GameObject LooseText;
+		public UnityEngine.UI.Button NextWaveButton;
 
 		VRCPlayerApi _localPlayer;
 		TowerTile.Manager _currentHighlightedTowerTile;
 		bool _isUserInVR = true;
 		TowerTile.TowerTypes _currentInventorySelection = TowerTile.TowerTypes.SingleTargetDamage;
+		int _currentWaveIndex = -1;
 
 		void Start()
 		{
 			_localPlayer = Networking.LocalPlayer;
 			_isUserInVR = _localPlayer.IsUserInVR();
 
-			ResetGame();
+			SwitchState(GameState.Pristine);
 		}
 
-		public void StartGame()
+		public void SwitchState(GameState newState)
 		{
-			if (Waves.GetLength(0) == 0) return;
-			GameState = GameState.Running;
-			Waves[0].SpawnWave();
+			State = newState;
+
+			switch (newState)
+			{
+				case GameState.Pristine:
+					ResetGame();
+					break;
+
+				case GameState.Waiting:
+					NextWaveButton.interactable = false;
+					break;
+
+				case GameState.WaveSpawning:
+					SpawnNextWave();
+					NextWaveButton.interactable = false;
+					break;
+
+				case GameState.WaveWaiting:
+					break;
+
+				case GameState.WaveFinished:
+					NextWaveButton.interactable = true;
+					break;
+
+				case GameState.Lost:
+					UpdateWinLooseSign(2);
+					break;
+
+				case GameState.Won:
+					UpdateWinLooseSign(1);
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		public void UIButtonStart()
+		{
+			SwitchState(GameState.WaveSpawning);
+		}
+
+		public void UIButtonReset()
+		{
+			SwitchState(GameState.Pristine);
+		}
+
+		public void UIButtonNextWave()
+		{
+			SwitchState(GameState.WaveSpawning);
+		}
+
+		void SpawnNextWave()
+		{
+			_currentWaveIndex++;
+
+			if (_currentWaveIndex >= Waves.GetLength(0))
+			{
+				SwitchState(GameState.Won);
+				return;
+			}
+
+			Waves[_currentWaveIndex].SwitchState(TowerDefense.Waves.State.Spawning);
+			UpdateWaveSign();
 		}
 
 		public void ResetGame()
 		{
-			GameState = GameState.Pristine;
-			Gold = 1000;
+			Gold = 100;
 			CurrentPlayerLives = TotalPlayerLives;
+			_currentWaveIndex = -1;
 			UpdateLivesText();
 			UpdateWaveSign();
+			UpdateWinLooseSign(0);
 
 			foreach (var Wave in Waves)
 			{
-				Wave.ResetWave();
+				Wave.SwitchState(TowerDefense.Waves.State.None);
 			}
 
 			// TODO: Reset towers
@@ -71,7 +141,7 @@ namespace SimonKnittel.TowerDefense
 
 		void UpdateWaveSign()
 		{
-			WaveSignText.text = $"Wave 1/{Waves.GetLength(0)}";
+			WaveSignText.text = $"Wave {_currentWaveIndex + 1}/{Waves.GetLength(0)}";
 		}
 
 		void SetTimeMultiplicator(int newValue)
@@ -101,7 +171,7 @@ namespace SimonKnittel.TowerDefense
 
 		void Update()
 		{
-			if (GameState != GameState.Running) return;
+			if (State != GameState.Waiting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
 
 			if (_currentHighlightedTowerTile != null)
 			{
@@ -135,7 +205,7 @@ namespace SimonKnittel.TowerDefense
 
 		public void InputUse()
 		{
-			if (GameState != GameState.Running) return;
+			if (State != GameState.Waiting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
 			if (_currentHighlightedTowerTile == null) return;
 
 			switch (_currentInventorySelection)
@@ -153,8 +223,46 @@ namespace SimonKnittel.TowerDefense
 
 		public void EnemyReachedCastle(int attackDamage)
 		{
-			CurrentPlayerLives -= attackDamage;
+			UpdateLives(-attackDamage);
+		}
+
+		void UpdateLives(int delta)
+		{
+			CurrentPlayerLives += delta;
 			UpdateLivesText();
+			CheckLooseCondition();
+		}
+
+		void CheckLooseCondition()
+		{
+			if (State != GameState.Waiting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
+			if (CurrentPlayerLives > 0) return;
+			SwitchState(GameState.Lost);
+		}
+
+		void UpdateWinLooseSign(int state)
+		{
+			switch (state)
+			{
+				case 0:
+					WinText.SetActive(false);
+					LooseText.SetActive(false);
+					WinLooseSign.SetActive(false);
+					break;
+
+				case 1:
+					WinText.SetActive(true);
+					WinLooseSign.SetActive(true);
+					break;
+
+				case 2:
+					LooseText.SetActive(true);
+					WinLooseSign.SetActive(true);
+					break;
+
+				default:
+					break;
+			}
 		}
 	}
 }

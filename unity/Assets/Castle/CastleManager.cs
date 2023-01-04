@@ -17,7 +17,7 @@ namespace SimonKnittel.TowerDefense
 
 			var enemyManager = collider.gameObject.GetComponent<Enemies.EnemyManager>();
 			GameManager.EnemyReachedCastle(enemyManager.AttackDamage);
-			enemyManager.Despawn();
+			enemyManager.SwitchState(Enemies.State.Killed);
 		}
 	}
 }

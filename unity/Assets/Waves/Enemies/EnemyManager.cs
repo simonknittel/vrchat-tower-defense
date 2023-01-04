@@ -7,11 +7,12 @@ using VRC.Udon;
 
 namespace SimonKnittel.TowerDefense.Enemies
 {
-	public enum MovementState
+	public enum State
 	{
 		None,
 		Moving,
 		Stunned,
+		Killed,
 	}
 
 	[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
@@ -20,40 +21,59 @@ namespace SimonKnittel.TowerDefense.Enemies
 		public TowerDefense.Waves.WaveManager WaveManager;
 		public int AttackDamage = 1;
 		public int Speed = 1;
-		public MovementState MovementState = MovementState.None;
+		public State State = State.None;
 		Transform[] _waypoints;
 		int _currentWaypointIndex = 0;
+		Vector3 _currentWaypointPosition;
 
-		public void Spawn()
+		public void SwitchState(State newState)
 		{
-			MovementState = MovementState.Moving;
+			State = newState;
+
+			switch (newState)
+			{
+				case State.None:
+					Despawn();
+					break;
+
+				case State.Moving:
+					_currentWaypointPosition = WaveManager.GameManager.Waypoints[_currentWaypointIndex].position;
+					break;
+
+				case State.Stunned:
+					break;
+
+				case State.Killed:
+					Despawn();
+					WaveManager.EnemyKilled();
+					break;
+
+				default:
+					break;
+			}
 		}
 
 		public void Despawn()
 		{
 			WaveManager.EnemyPool.Return(this.gameObject);
-			MovementState = MovementState.None;
 			_currentWaypointIndex = 0;
 		}
 
 		void OnTriggerEnter(Collider collider)
 		{
 			if (collider.gameObject.name.Contains("Waypoint") == false) return;
+
 			_currentWaypointIndex++;
-			if (_currentWaypointIndex >= WaveManager.GameManager.Waypoints.GetLength(0))
-			{
-				MovementState = MovementState.None;
-				return;
-			};
+			if (_currentWaypointIndex >= WaveManager.GameManager.Waypoints.GetLength(0)) return;
+			_currentWaypointPosition = WaveManager.GameManager.Waypoints[_currentWaypointIndex].position;
 		}
 
 		void Update()
 		{
-			if (MovementState != MovementState.Moving) return;
+			if (State != State.Moving) return;
 
 			var step = Speed * Time.deltaTime;
-			var targetPosition = WaveManager.GameManager.Waypoints[_currentWaypointIndex].position;
-			transform.position = Vector3.MoveTowards(transform.position, targetPosition, step);
+			transform.position = Vector3.MoveTowards(transform.position, _currentWaypointPosition, step);
 		}
 	}
 }
