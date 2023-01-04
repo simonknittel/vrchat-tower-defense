@@ -80,6 +80,7 @@ namespace SimonKnittel.TowerDefense.Waves
 			if (State != State.Spawning) return;
 
 			var spawnedEnemy = EnemyPool.TryToSpawn();
+			spawnedEnemy.GetComponent<Enemies.EnemyManager>().SwitchState(Enemies.State.Spawning);
 			spawnedEnemy.GetComponent<Enemies.EnemyManager>().SwitchState(Enemies.State.Moving);
 
 			_spawnIndex++;

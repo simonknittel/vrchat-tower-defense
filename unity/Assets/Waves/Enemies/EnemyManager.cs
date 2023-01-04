@@ -1,7 +1,6 @@
 ﻿
 using UdonSharp;
 using UnityEngine;
-using UnityEngine.AI;
 using VRC.SDKBase;
 using VRC.Udon;
 
@@ -10,6 +9,7 @@ namespace SimonKnittel.TowerDefense.Enemies
 	public enum State
 	{
 		None,
+		Spawning,
 		Moving,
 		Stunned,
 		Killed,
@@ -21,10 +21,13 @@ namespace SimonKnittel.TowerDefense.Enemies
 		public TowerDefense.Waves.WaveManager WaveManager;
 		public int AttackDamage = 1;
 		public int Speed = 1;
+		public int TotalHealth = 3;
+		public int CurrentHealth = 3;
 		public State State = State.None;
 		Transform[] _waypoints;
 		int _currentWaypointIndex = 0;
 		Vector3 _currentWaypointPosition;
+		public UnityEngine.UI.Text HealthText;
 
 		public void SwitchState(State newState)
 		{
@@ -34,6 +37,12 @@ namespace SimonKnittel.TowerDefense.Enemies
 			{
 				case State.None:
 					Despawn();
+					break;
+
+				case State.Spawning:
+					_currentWaypointIndex = 0;
+					CurrentHealth = TotalHealth;
+					HealthText.text = $"{CurrentHealth}/{TotalHealth}";
 					break;
 
 				case State.Moving:
@@ -56,7 +65,6 @@ namespace SimonKnittel.TowerDefense.Enemies
 		public void Despawn()
 		{
 			WaveManager.EnemyPool.Return(this.gameObject);
-			_currentWaypointIndex = 0;
 		}
 
 		void OnTriggerEnter(Collider collider)
@@ -74,6 +82,18 @@ namespace SimonKnittel.TowerDefense.Enemies
 
 			var step = Speed * Time.deltaTime;
 			transform.position = Vector3.MoveTowards(transform.position, _currentWaypointPosition, step);
+		}
+
+		public bool Attacked(int attackDamage)
+		{
+			CurrentHealth -= attackDamage;
+			if (CurrentHealth > 0)
+			{
+				HealthText.text = $"{CurrentHealth}/{TotalHealth}";
+				return false;
+			}
+			SwitchState(State.Killed);
+			return true;
 		}
 	}
 }
