@@ -1,4 +1,5 @@
 ﻿
+using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -80,22 +81,26 @@ namespace SimonKnittel.TowerDefense.Enemies
 
 		void OnTriggerEnter(Collider collider)
 		{
-			if (collider.gameObject.name.Contains("Waypoint") == false) return;
+			// Only react to current waypoint
+			if (collider.gameObject != _currentWaypoint) return;
 
 			var length = WaveManager.GameManager.Waypoints.GetLength(0);
 
+			// Find index of current waypoint in waypoint collection
+			int currentsWaypointIndex = 99999;
 			for (int i = 0; i < length; i++)
 			{
-				// Check if entered waypoint is the current waypoint
 				if (WaveManager.GameManager.Waypoints[i] != _currentWaypoint) continue;
-
-				// Check if a next waypoint exists
-				if (i + 1 >= length) return;
-
-				_currentWaypoint = WaveManager.GameManager.Waypoints[i + 1];
-				_currentWaypointPosition = _currentWaypoint.transform.position;
+				currentsWaypointIndex = i;
 				break;
 			}
+
+			// Check if a next waypoint exists
+			if (currentsWaypointIndex + 1 >= length) return;
+
+			// Select next waypoint
+			_currentWaypoint = WaveManager.GameManager.Waypoints[currentsWaypointIndex + 1];
+			_currentWaypointPosition = _currentWaypoint.transform.position;
 		}
 
 		void Update()

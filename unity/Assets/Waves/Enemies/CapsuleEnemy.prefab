@@ -140,9 +140,10 @@ MonoBehaviour:
   WaveManager: {fileID: 0}
   AttackDamage: 1
   Speed: 1
-  TotalHealth: 5
-  CurrentHealth: 5
+  TotalHealth: 3
+  CurrentHealth: 0
   State: 0
+  _currentWaypoint: {fileID: 0}
   CanvasTransform: {fileID: 3489668215595701140}
   HealthText: {fileID: 5190329562076355525}
   OriginalMaterial: {fileID: 2100000, guid: fc74a5a6dd62c544b866a50037025c0e, type: 2}
