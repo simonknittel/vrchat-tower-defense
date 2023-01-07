@@ -58,7 +58,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: fc74a5a6dd62c544b866a50037025c0e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -140,11 +140,14 @@ MonoBehaviour:
   WaveManager: {fileID: 0}
   AttackDamage: 1
   Speed: 1
-  TotalHealth: 3
-  CurrentHealth: 3
+  TotalHealth: 5
+  CurrentHealth: 5
   State: 0
   CanvasTransform: {fileID: 3489668215595701140}
   HealthText: {fileID: 5190329562076355525}
+  OriginalMaterial: {fileID: 2100000, guid: fc74a5a6dd62c544b866a50037025c0e, type: 2}
+  DamageFlashMaterial: {fileID: 2100000, guid: 3aa362df6b6896542bb488e1e6f8c3ea, type: 2}
+  MeshRenderer: {fileID: 1103324379231233652}
 --- !u!114 &8318375623697940104
 MonoBehaviour:
   m_ObjectHideFlags: 0

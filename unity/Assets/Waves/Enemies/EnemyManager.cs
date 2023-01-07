@@ -19,17 +19,21 @@ namespace SimonKnittel.TowerDefense.Enemies
 	public class EnemyManager : UdonSharpBehaviour
 	{
 		public TowerDefense.Waves.WaveManager WaveManager;
-		public int AttackDamage = 1;
-		public int Speed = 1;
-		public int TotalHealth = 3;
-		public int CurrentHealth = 3;
+		public int AttackDamage;
+		public int Speed;
+		public int TotalHealth;
+		public int CurrentHealth;
 		public State State = State.None;
 		Transform[] _waypoints;
-		int _currentWaypointIndex = 0;
+		[SerializeField]
+		GameObject _currentWaypoint;
 		Vector3 _currentWaypointPosition;
 		public Transform CanvasTransform;
 		public UnityEngine.UI.Text HealthText;
 		VRCPlayerApi _localPlayer;
+		public Material OriginalMaterial;
+		public Material DamageFlashMaterial;
+		public MeshRenderer MeshRenderer;
 
 		void Start()
 		{
@@ -47,13 +51,13 @@ namespace SimonKnittel.TowerDefense.Enemies
 					break;
 
 				case State.Spawning:
-					_currentWaypointIndex = 0;
+					_currentWaypoint = WaveManager.GameManager.Waypoints[0];
 					CurrentHealth = TotalHealth;
 					HealthText.text = $"{CurrentHealth}/{TotalHealth}";
 					break;
 
 				case State.Moving:
-					_currentWaypointPosition = WaveManager.GameManager.Waypoints[_currentWaypointIndex].position;
+					_currentWaypointPosition = _currentWaypoint.transform.position;
 					break;
 
 				case State.Stunned:
@@ -78,15 +82,25 @@ namespace SimonKnittel.TowerDefense.Enemies
 		{
 			if (collider.gameObject.name.Contains("Waypoint") == false) return;
 
-			_currentWaypointIndex++;
-			if (_currentWaypointIndex >= WaveManager.GameManager.Waypoints.GetLength(0)) return;
-			_currentWaypointPosition = WaveManager.GameManager.Waypoints[_currentWaypointIndex].position;
+			var length = WaveManager.GameManager.Waypoints.GetLength(0);
+
+			for (int i = 0; i < length; i++)
+			{
+				// Check if entered waypoint is the current waypoint
+				if (WaveManager.GameManager.Waypoints[i] != _currentWaypoint) continue;
+
+				// Check if a next waypoint exists
+				if (i + 1 >= length) return;
+
+				_currentWaypoint = WaveManager.GameManager.Waypoints[i + 1];
+				_currentWaypointPosition = _currentWaypoint.transform.position;
+				break;
+			}
 		}
 
 		void Update()
 		{
-			var trackingData = _localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
-			CanvasTransform.LookAt(CanvasTransform.position + trackingData.rotation * Vector3.forward, trackingData.rotation * Vector3.up);
+			UpdateBillboardPositionAndRotation();
 
 			if (State != State.Moving) return;
 
@@ -94,16 +108,50 @@ namespace SimonKnittel.TowerDefense.Enemies
 			transform.position = Vector3.MoveTowards(transform.position, _currentWaypointPosition, step);
 		}
 
-		public bool Attacked(int attackDamage)
+		private void UpdateBillboardPositionAndRotation()
 		{
+			var trackingData = _localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+			CanvasTransform.LookAt(CanvasTransform.position + trackingData.rotation * Vector3.forward, trackingData.rotation * Vector3.up);
+		}
+
+		public bool TakeDamage(int attackDamage)
+		{
+			if (State == State.Killed) return true;
+
 			CurrentHealth -= attackDamage;
+
 			if (CurrentHealth > 0)
 			{
+				FlashMaterial();
 				HealthText.text = $"{CurrentHealth}/{TotalHealth}";
 				return false;
 			}
+
 			SwitchState(State.Killed);
 			return true;
+		}
+
+		public bool TakeKnockback(float knockbackAmount)
+		{
+			if (State == State.Killed) return true;
+
+			var step = knockbackAmount * Time.deltaTime * -1;
+			transform.position = Vector3.MoveTowards(transform.position, _currentWaypointPosition, step);
+
+			FlashMaterial();
+
+			return false;
+		}
+
+		void FlashMaterial()
+		{
+			MeshRenderer.material = DamageFlashMaterial;
+			SendCustomEventDelayedSeconds("ResetMaterial", .1f);
+		}
+
+		public void ResetMaterial()
+		{
+			MeshRenderer.material = OriginalMaterial;
 		}
 	}
 }

@@ -1,4 +1,5 @@
 ﻿
+using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -20,13 +21,15 @@ namespace SimonKnittel.TowerDefense
 	[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 	public class GameManager : UdonSharpBehaviour
 	{
-		public int Gold = 200;
-		public int TotalPlayerLives = 10;
+		public int InitialPlayerGold;
+		public int CurrentPlayerGold;
+		public int TotalPlayerLives;
 		public int CurrentPlayerLives;
-		public int SingleTargetDamageCosts = 100;
+		public int SingleTargetDamageCosts;
+		public int SingleTargetKnockbackCosts;
 		public Waves.WaveManager[] Waves;
-		public int TimeMultiplicator = 1;
-		public Transform[] Waypoints;
+		public int TimeMultiplicator;
+		public GameObject[] Waypoints;
 		public GameState State = GameState.Pristine;
 		public UnityEngine.UI.Text LivesText;
 		public UnityEngine.UI.Text WaveSignText;
@@ -38,7 +41,7 @@ namespace SimonKnittel.TowerDefense
 		VRCPlayerApi _localPlayer;
 		TowerTile.Manager _currentHighlightedTowerTile;
 		bool _isUserInVR = true;
-		TowerTile.TowerTypes _currentInventorySelection = TowerTile.TowerTypes.SingleTargetDamage;
+		public TowerTile.TowerTypes CurrentInventorySelection = TowerTile.TowerTypes.SingleTargetDamage;
 		int _currentWaveIndex = 0;
 
 		void Start()
@@ -118,7 +121,7 @@ namespace SimonKnittel.TowerDefense
 
 		public void ResetGame()
 		{
-			Gold = 200;
+			CurrentPlayerGold = InitialPlayerGold;
 			CurrentPlayerLives = TotalPlayerLives;
 			_currentWaveIndex = 0;
 			UpdateLivesText();
@@ -172,6 +175,12 @@ namespace SimonKnittel.TowerDefense
 		{
 			if (State != GameState.Waiting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
 
+			CastSelectionRay();
+			CheckInventorySelection();
+		}
+
+		private void CastSelectionRay()
+		{
 			if (_currentHighlightedTowerTile != null)
 			{
 				_currentHighlightedTowerTile.ToggleHighlight(false);
@@ -192,7 +201,7 @@ namespace SimonKnittel.TowerDefense
 			var ray = new Ray(origin, direction);
 
 			RaycastHit hit;
-			if (Physics.Raycast(ray, out hit, 5f))
+			if (Physics.Raycast(ray, out hit, 5f, 1 << 22))
 			{
 				if (hit.transform && hit.transform.gameObject.name.Contains("RaycastTarget"))
 				{
@@ -202,17 +211,35 @@ namespace SimonKnittel.TowerDefense
 			}
 		}
 
+		private void CheckInventorySelection()
+		{
+			if (Input.GetKeyDown(KeyCode.Alpha1))
+			{
+				CurrentInventorySelection = TowerTile.TowerTypes.SingleTargetDamage;
+			}
+			else if (Input.GetKeyDown(KeyCode.Alpha2))
+			{
+				CurrentInventorySelection = TowerTile.TowerTypes.SingleTargetKnockback;
+			}
+		}
+
 		public void InputUse()
 		{
 			if (State != GameState.Waiting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
 			if (_currentHighlightedTowerTile == null) return;
 
-			switch (_currentInventorySelection)
+			switch (CurrentInventorySelection)
 			{
 				case TowerTile.TowerTypes.SingleTargetDamage:
-					if (Gold < SingleTargetDamageCosts) return;
+					if (CurrentPlayerGold < SingleTargetDamageCosts) return;
 					if (_currentHighlightedTowerTile.SpawnTower(TowerTile.TowerTypes.SingleTargetDamage) == false) return;
-					Gold -= SingleTargetDamageCosts;
+					CurrentPlayerGold -= SingleTargetDamageCosts;
+					return;
+
+				case TowerTile.TowerTypes.SingleTargetKnockback:
+					if (CurrentPlayerGold < SingleTargetKnockbackCosts) return;
+					if (_currentHighlightedTowerTile.SpawnTower(TowerTile.TowerTypes.SingleTargetKnockback) == false) return;
+					CurrentPlayerGold -= SingleTargetKnockbackCosts;
 					return;
 
 				default:

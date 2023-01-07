@@ -7,13 +7,13 @@ using VRC.Udon;
 namespace SimonKnittel.TowerDefense.TowerTile
 {
 	[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
-	public class SingleTargetDamage : Tower
+	public class SingleTargetKnockback : Tower
 	{
-		public int DamageAmount;
+		public float KnockbackAmount;
 
 		override public void Attack()
 		{
-			if (CurrentTarget.TakeDamage(DamageAmount))
+			if (CurrentTarget.TakeKnockback(KnockbackAmount))
 			{
 				RemoveTargetFromCollection(CurrentTarget);
 				SelectNextTarget();

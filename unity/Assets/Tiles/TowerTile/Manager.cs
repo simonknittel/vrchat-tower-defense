@@ -10,6 +10,7 @@ namespace SimonKnittel.TowerDefense.TowerTile
 	{
 		None,
 		SingleTargetDamage,
+		SingleTargetKnockback
 	}
 
 	[UdonBehaviourSyncMode(BehaviourSyncMode.None)]
@@ -17,6 +18,7 @@ namespace SimonKnittel.TowerDefense.TowerTile
 	{
 		public MeshRenderer RaycastTargetRenderer;
 		public GameObject SingleTargetDamage;
+		public GameObject SingleTargetKnockback;
 		TowerTypes _activeTower = TowerTypes.None;
 
 		public void ToggleHighlight(bool newValue)
@@ -28,11 +30,16 @@ namespace SimonKnittel.TowerDefense.TowerTile
 		{
 			if (_activeTower != TowerTypes.None) return false;
 
+			_activeTower = type;
+
 			switch (type)
 			{
 				case TowerTypes.SingleTargetDamage:
 					SingleTargetDamage.SetActive(true);
-					_activeTower = type;
+					return true;
+
+				case TowerTypes.SingleTargetKnockback:
+					SingleTargetKnockback.SetActive(true);
 					return true;
 
 				default:
