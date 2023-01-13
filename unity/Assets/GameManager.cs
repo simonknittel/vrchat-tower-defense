@@ -37,6 +37,7 @@ namespace SimonKnittel.TowerDefense
 		public GameObject WinText;
 		public GameObject LooseText;
 		public UnityEngine.UI.Button NextWaveButton;
+		public GameObject TowerTilesContainer;
 
 		VRCPlayerApi _localPlayer;
 		TowerTile.Manager _currentHighlightedTowerTile;
@@ -63,7 +64,7 @@ namespace SimonKnittel.TowerDefense
 					break;
 
 				case GameState.Waiting:
-					NextWaveButton.interactable = false;
+					NextWaveButton.interactable = true;
 					break;
 
 				case GameState.WaveSpawning:
@@ -101,7 +102,7 @@ namespace SimonKnittel.TowerDefense
 
 		public void UIButtonStart()
 		{
-			SwitchState(GameState.WaveSpawning);
+			SwitchState(GameState.Waiting);
 		}
 
 		public void UIButtonReset()
@@ -133,7 +134,13 @@ namespace SimonKnittel.TowerDefense
 				Wave.SwitchState(TowerDefense.Waves.State.None);
 			}
 
-			// TODO: Reset towers
+			var towerTiles = TowerTilesContainer.GetComponentsInChildren<TowerTile.Manager>();
+			for (int i = 0; i < towerTiles.GetLength(0); i++)
+			{
+				towerTiles[i].Reset();
+			}
+
+			ResetSelection();
 		}
 
 		void UpdateLivesText()
@@ -181,11 +188,7 @@ namespace SimonKnittel.TowerDefense
 
 		private void CastSelectionRay()
 		{
-			if (_currentHighlightedTowerTile != null)
-			{
-				_currentHighlightedTowerTile.ToggleHighlight(false);
-				_currentHighlightedTowerTile = null;
-			}
+			ResetSelection();
 
 			VRCPlayerApi.TrackingData trackingData;
 			if (_isUserInVR)
@@ -209,6 +212,14 @@ namespace SimonKnittel.TowerDefense
 					_currentHighlightedTowerTile.ToggleHighlight(true);
 				}
 			}
+		}
+
+		private void ResetSelection()
+		{
+			if (_currentHighlightedTowerTile == null) return;
+
+			_currentHighlightedTowerTile.ToggleHighlight(false);
+			_currentHighlightedTowerTile = null;
 		}
 
 		private void CheckInventorySelection()

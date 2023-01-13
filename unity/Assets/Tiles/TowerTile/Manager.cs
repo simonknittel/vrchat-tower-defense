@@ -46,5 +46,12 @@ namespace SimonKnittel.TowerDefense.TowerTile
 					return false;
 			}
 		}
+
+		public void Reset()
+		{
+			SingleTargetDamage.SetActive(false);
+			SingleTargetKnockback.SetActive(false);
+			_activeTower = TowerTypes.None;
+		}
 	}
 }
