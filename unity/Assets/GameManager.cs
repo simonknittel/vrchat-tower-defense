@@ -10,7 +10,7 @@ namespace SimonKnittel.TowerDefense
 	public enum GameState
 	{
 		Pristine,
-		Waiting,
+		Starting,
 		WaveSpawning,
 		WaveWaiting,
 		WaveFinished,
@@ -28,7 +28,6 @@ namespace SimonKnittel.TowerDefense
 		public int SingleTargetDamageCosts;
 		public int SingleTargetKnockbackCosts;
 		public Waves.WaveManager[] Waves;
-		public int TimeMultiplicator;
 		public GameObject[] Waypoints;
 		public GameState State = GameState.Pristine;
 		public UnityEngine.UI.Text LivesText;
@@ -38,6 +37,8 @@ namespace SimonKnittel.TowerDefense
 		public GameObject LooseText;
 		public UnityEngine.UI.Button NextWaveButton;
 		public GameObject TowerTilesContainer;
+		public GameObject StartGame;
+		public GameObject PlayerMenu;
 
 		VRCPlayerApi _localPlayer;
 		TowerTile.Manager _currentHighlightedTowerTile;
@@ -60,10 +61,12 @@ namespace SimonKnittel.TowerDefense
 			switch (newState)
 			{
 				case GameState.Pristine:
-					ResetGame();
+					Pristine();
 					break;
 
-				case GameState.Waiting:
+				case GameState.Starting:
+					StartGame.SetActive(false);
+					PlayerMenu.SetActive(true);
 					NextWaveButton.interactable = true;
 					break;
 
@@ -100,11 +103,6 @@ namespace SimonKnittel.TowerDefense
 			}
 		}
 
-		public void UIButtonStart()
-		{
-			SwitchState(GameState.Waiting);
-		}
-
 		public void UIButtonReset()
 		{
 			SwitchState(GameState.Pristine);
@@ -120,7 +118,7 @@ namespace SimonKnittel.TowerDefense
 			Waves[_currentWaveIndex].SwitchState(TowerDefense.Waves.State.Spawning);
 		}
 
-		public void ResetGame()
+		public void Pristine()
 		{
 			CurrentPlayerGold = InitialPlayerGold;
 			CurrentPlayerLives = TotalPlayerLives;
@@ -141,6 +139,11 @@ namespace SimonKnittel.TowerDefense
 			}
 
 			ResetSelection();
+
+			NextWaveButton.interactable = false;
+
+			PlayerMenu.SetActive(false);
+			StartGame.SetActive(true);
 		}
 
 		void UpdateLivesText()
@@ -153,37 +156,11 @@ namespace SimonKnittel.TowerDefense
 			WaveSignText.text = $"Wave {_currentWaveIndex + 1}/{Waves.GetLength(0)}";
 		}
 
-		void SetTimeMultiplicator(int newValue)
-		{
-			TimeMultiplicator = newValue;
-
-			foreach (var Wave in Waves)
-			{
-				Wave.UpdateTimeMultiplicator();
-			}
-		}
-
-		public void TimeMultiplicator1x()
-		{
-			SetTimeMultiplicator(1);
-		}
-
-		public void TimeMultiplicator2x()
-		{
-			SetTimeMultiplicator(2);
-		}
-
-		public void TimeMultiplicator4x()
-		{
-			SetTimeMultiplicator(4);
-		}
-
 		void Update()
 		{
-			if (State != GameState.Waiting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
+			if (State != GameState.Starting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
 
 			CastSelectionRay();
-			CheckInventorySelection();
 		}
 
 		private void CastSelectionRay()
@@ -222,21 +199,9 @@ namespace SimonKnittel.TowerDefense
 			_currentHighlightedTowerTile = null;
 		}
 
-		private void CheckInventorySelection()
-		{
-			if (Input.GetKeyDown(KeyCode.Alpha1))
-			{
-				CurrentInventorySelection = TowerTile.TowerTypes.SingleTargetDamage;
-			}
-			else if (Input.GetKeyDown(KeyCode.Alpha2))
-			{
-				CurrentInventorySelection = TowerTile.TowerTypes.SingleTargetKnockback;
-			}
-		}
-
 		public void InputUse()
 		{
-			if (State != GameState.Waiting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
+			if (State != GameState.Starting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
 			if (_currentHighlightedTowerTile == null) return;
 
 			switch (CurrentInventorySelection)
@@ -272,7 +237,7 @@ namespace SimonKnittel.TowerDefense
 
 		void CheckLooseCondition()
 		{
-			if (State != GameState.Waiting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
+			if (State != GameState.Starting && State != GameState.WaveSpawning && State != GameState.WaveWaiting && State != GameState.WaveFinished) return;
 			if (CurrentPlayerLives > 0) return;
 			SwitchState(GameState.Lost);
 		}
@@ -300,6 +265,11 @@ namespace SimonKnittel.TowerDefense
 				default:
 					break;
 			}
+		}
+
+		public void ChangeInventory(TowerTile.TowerTypes newSelection)
+		{
+			CurrentInventorySelection = newSelection;
 		}
 	}
 }

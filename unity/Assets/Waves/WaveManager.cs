@@ -28,7 +28,7 @@ namespace SimonKnittel.TowerDefense.Waves
 
 		void Start()
 		{
-			_spawnRate = SpawnDuration / EnemyPool.Pool.GetLength(0) / GameManager.TimeMultiplicator;
+			_spawnRate = SpawnDuration / EnemyPool.Pool.GetLength(0);
 		}
 
 		public void SwitchState(State newState)
@@ -68,11 +68,6 @@ namespace SimonKnittel.TowerDefense.Waves
 			{
 				Enemy.GetComponent<Enemies.EnemyManager>().SwitchState(Enemies.State.None);
 			}
-		}
-
-		public void UpdateTimeMultiplicator()
-		{
-			_spawnRate = SpawnDuration / EnemyPool.Pool.GetLength(0) / GameManager.TimeMultiplicator;
 		}
 
 		public void SpawnEnemy()
