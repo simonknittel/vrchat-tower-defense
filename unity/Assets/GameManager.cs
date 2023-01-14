@@ -1,9 +1,7 @@
 ﻿
-using System;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
-using VRC.Udon;
 
 namespace SimonKnittel.TowerDefense
 {
@@ -31,20 +29,18 @@ namespace SimonKnittel.TowerDefense
 		public GameObject[] Waypoints;
 		public GameState State = GameState.Pristine;
 		public UnityEngine.UI.Text LivesText;
-		public UnityEngine.UI.Text WaveSignText;
 		public GameObject WinLooseSign;
 		public GameObject WinText;
 		public GameObject LooseText;
-		public UnityEngine.UI.Button NextWaveButton;
 		public GameObject TowerTilesContainer;
-		public GameObject StartGame;
-		public GameObject PlayerMenu;
+		public StartGame StartGame;
+		public PlayerMenu PlayerMenu;
 
 		VRCPlayerApi _localPlayer;
 		TowerTile.Manager _currentHighlightedTowerTile;
 		bool _isUserInVR = true;
 		public TowerTile.TowerTypes CurrentInventorySelection = TowerTile.TowerTypes.SingleTargetDamage;
-		int _currentWaveIndex = 0;
+		public int CurrentWaveIndex = 0;
 
 		void Start()
 		{
@@ -65,29 +61,22 @@ namespace SimonKnittel.TowerDefense
 					break;
 
 				case GameState.Starting:
-					StartGame.SetActive(false);
-					PlayerMenu.SetActive(true);
-					NextWaveButton.interactable = true;
 					break;
 
 				case GameState.WaveSpawning:
 					SpawnNextWave();
-					UpdateWaveSign();
-					NextWaveButton.interactable = false;
 					break;
 
 				case GameState.WaveWaiting:
 					break;
 
 				case GameState.WaveFinished:
-					_currentWaveIndex++;
-					if (_currentWaveIndex >= Waves.GetLength(0))
+					CurrentWaveIndex++;
+					if (CurrentWaveIndex >= Waves.GetLength(0))
 					{
 						SwitchState(GameState.Won);
 						break;
 					}
-					UpdateWaveSign();
-					NextWaveButton.interactable = true;
 					break;
 
 				case GameState.Lost:
@@ -101,30 +90,22 @@ namespace SimonKnittel.TowerDefense
 				default:
 					break;
 			}
-		}
 
-		public void UIButtonReset()
-		{
-			SwitchState(GameState.Pristine);
-		}
-
-		public void UIButtonNextWave()
-		{
-			SwitchState(GameState.WaveSpawning);
+			StartGame.GameStateSwitched(State);
+			PlayerMenu.GameStateSwitched(State);
 		}
 
 		void SpawnNextWave()
 		{
-			Waves[_currentWaveIndex].SwitchState(TowerDefense.Waves.State.Spawning);
+			Waves[CurrentWaveIndex].SwitchState(TowerDefense.Waves.State.Spawning);
 		}
 
 		public void Pristine()
 		{
 			CurrentPlayerGold = InitialPlayerGold;
 			CurrentPlayerLives = TotalPlayerLives;
-			_currentWaveIndex = 0;
+			CurrentWaveIndex = 0;
 			UpdateLivesText();
-			UpdateWaveSign();
 			UpdateWinLooseSign(0);
 
 			foreach (var Wave in Waves)
@@ -139,21 +120,11 @@ namespace SimonKnittel.TowerDefense
 			}
 
 			ResetSelection();
-
-			NextWaveButton.interactable = false;
-
-			PlayerMenu.SetActive(false);
-			StartGame.SetActive(true);
 		}
 
 		void UpdateLivesText()
 		{
 			LivesText.text = $"Lives {CurrentPlayerLives}/{TotalPlayerLives}";
-		}
-
-		void UpdateWaveSign()
-		{
-			WaveSignText.text = $"Wave {_currentWaveIndex + 1}/{Waves.GetLength(0)}";
 		}
 
 		void Update()
