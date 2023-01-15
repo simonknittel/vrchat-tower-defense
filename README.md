@@ -2,11 +2,12 @@
 
 This repository contains the Unity project for my VRChat world "Ind3x's Tower Defense".
 
-_⚠️ This project is work in progress._
+_⚠️ This project is work in progress and the world is not publicly available yet._
 
 ## Do you have feedback or found bugs?
 
 You can:
+
 - Create an [issue](https://github.com/simonknittel/vrchat-tower-defense/issues)
 - Create a [discussion](https://github.com/simonknittel/vrchat-tower-defense/discussions)
 - Join my Discord server: <https://discord.gg/A5TvznQbSR>
